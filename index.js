@@ -59,11 +59,30 @@ async function run() {
       res.json(order);
     });
 
-    // POST API IN PLANS
+    //  GET API OF ORDERS
+    app.get("/orders", async (req, res) => {
+      const cursor = ordersCollection.find({});
+      const products = await cursor.toArray();
+      console.log(products);
+      res.json(products);
+    });
+
+    // POST API IN Orders
     app.post("/orders", async (req, res) => {
       const newPlan = req.body;
       const result = await ordersCollection.insertOne(newPlan);
       res.json(result);
+    });
+
+    // Get api in orders
+    app.get("/orders", async (req, res) => {
+      const email = req.query.email;
+
+      const query = { email: email };
+
+      const cursor = ordersCollection.find(query);
+      const orders = await cursor.toArray();
+      res.json(orders);
     });
 
     // GET API
@@ -71,14 +90,6 @@ async function run() {
       const cursor = ordersCollection.find({});
       const plans = await cursor.toArray();
       res.send(plans);
-    });
-
-    // GET SINGLE API
-    app.get("/plans/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const plan = await ordersCollection.findOne(query);
-      res.json(plan);
     });
 
     // UPDATE PLAN
@@ -102,7 +113,7 @@ async function run() {
 
     // DELETE PLAN
     app.delete("/devplan/:id", async (req, res) => {
-      const result = await productsCollection.deleteOne({
+      const result = await ordersCollection.deleteOne({
         _id: ObjectId(req.params.id),
       });
       res.send(result);
@@ -112,11 +123,22 @@ async function run() {
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
-      console.log(result);
+      // console.log(result);
       res.json(result);
     });
 
-    // Update user to the database
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
+
+    // Update user to the database (login with google mainly)
     app.put("/users", async (req, res) => {
       const user = req.body;
       const filter = { email: user.email };
@@ -127,6 +149,14 @@ async function run() {
         updateDoc,
         options
       );
+      res.json(result);
+    });
+
+    app.put("/users/admin", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const updateDoc = { $set: { role: "admin" } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
       res.json(result);
     });
   } finally {
