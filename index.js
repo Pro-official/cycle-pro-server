@@ -25,6 +25,7 @@ async function run() {
     const database = client.db("Dbcycle");
     const ordersCollection = database.collection("orders");
     const productsCollection = database.collection("products");
+    const usersCollection = database.collection("users");
 
     // POST API
     app.post("/products", async (req, res) => {
@@ -105,6 +106,28 @@ async function run() {
         _id: ObjectId(req.params.id),
       });
       res.send(result);
+    });
+
+    // Add user to the database
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      console.log(result);
+      res.json(result);
+    });
+
+    // Update user to the database
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.json(result);
     });
   } finally {
     // await client.close();
