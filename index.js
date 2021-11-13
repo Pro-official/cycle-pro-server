@@ -26,20 +26,45 @@ async function run() {
     const ordersCollection = database.collection("orders");
     const productsCollection = database.collection("products");
     const usersCollection = database.collection("users");
+    const reviewsCollection = database.collection("reviews");
 
-    // POST API
+    // POST API IN PRODUCTS
     app.post("/products", async (req, res) => {
       const newPlan = req.body;
       const result = await productsCollection.insertOne(newPlan);
-      // console.log(newPlan);
       res.json(result);
+    });
+
+    // app.get("/orders", async (req, res) => {
+    //   const email = req.query.email;
+
+    //   const query = { email: email };
+
+    //   const cursor = ordersCollection.find(query);
+    //   const orders = await cursor.toArray();
+    //   res.json(orders);
+    // });
+
+    // POST REVIEW
+    app.post("/reviews", async (req, res) => {
+      const newPlan = req.body;
+      const result = await reviewsCollection.insertOne(newPlan);
+      res.json(result);
+    });
+
+    //  GET API FROM REVIEWS
+    app.get("/reviews", async (req, res) => {
+      const cursor = reviewsCollection.find({});
+      const products = await cursor.toArray();
+      // console.log(products);
+      res.json(products);
     });
 
     //  GET API WHICH WAS PLACED ORDERED BY USER
     app.get("/products", async (req, res) => {
       const cursor = productsCollection.find({});
       const products = await cursor.toArray();
-      console.log(products);
+      // console.log(products);
       res.json(products);
     });
 
@@ -111,9 +136,17 @@ async function run() {
       res.json(result);
     });
 
-    // DELETE PLAN
+    // DELETE Orders
     app.delete("/devplan/:id", async (req, res) => {
       const result = await ordersCollection.deleteOne({
+        _id: ObjectId(req.params.id),
+      });
+      res.send(result);
+    });
+
+    // DELETE Product
+    app.delete("/devproducts/:id", async (req, res) => {
+      const result = await productsCollection.deleteOne({
         _id: ObjectId(req.params.id),
       });
       res.send(result);
